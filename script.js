@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     let isRecording = false;
     // const API_ENDPOINT = "http://127.0.0.1:8000/analyze-interview/";
-    const API_ENDPOINT = "http://0.0.0.0:7860/analyze-interview/";
-    // const API_ENDPOINT = "/analyze";
-    // const API_ENDPOINT = window.location.origin + "/analyze-interview/";
-
+    // const API_ENDPOINT = "http://0.0.0.0:7860/analyze-interview/"; // for HF; this is the port for the HF server
+    const API_ENDPOINT = window.location.origin + "/analyze-interview/";
+    // Locally → becomes http://127.0.0.1:7860/analyze-interview/
+    // On Hugging Face → becomes https://<your-space>.hf.space/analyze-interview/
 
     // --- Media Recorder Functions ---
     const startRecording = async () => {
