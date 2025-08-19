@@ -27,7 +27,7 @@ jobs:
           git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewAssistant
           
           # Pull the latest changes from the hub using a rebase strategy
-          git pull hub main --rebase
+          git pull hub main
           
           # Push the merged changes back to the hub
           git push hub main
