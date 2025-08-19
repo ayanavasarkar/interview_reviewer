@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Feedback AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interview Feedback AI 🎙️</h1>
+            <p>Record or upload your mock interview and get AI-powered feedback instantly.</p>
+        </header>
+
+        <main>
+            <div class="controls">
+                <button id="recordBtn">Start Recording</button>
+
+                <div class="upload-section">
+                    <span>or</span>
+                    <label for="audioFile" class="upload-btn">Upload Audio File</label>
+                    <input type="file" id="audioFile" accept="audio/*" hidden>
+                    <span id="fileName">No file chosen</span>
+                </div>
+            </div>
+
+            <div id="status" class="status-hidden">
+                <div class="loader"></div>
+                <p id="statusText">Processing your interview...</p>
+            </div>
+
+            <div id="feedbackReport" class="report-hidden">
+                <h2>Transcript & Feedback</h2>
+
+                <div class="report-section transcript-section">
+                    <h3>📝 Transcript</h3>
+                    <p id="transcriptText"></p>
+                </div>
+
+                <div class="report-section">
+                    <h3>✅ Strengths</h3>
+                    <p id="strengthsText"></p>
+                </div>
+
+                <div class="report-section">
+                    <h3>⚠️ Weaknesses</h3>
+                    <p id="weaknessesText"></p>
+                </div>
+
+                <div class="report-section">
+                    <h3>🚀 Recommendations</h3>
+                    <p id="recommendationsText"></p>
+                </div>
+
+                <button id="resetBtn">Analyze Another</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
