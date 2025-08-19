@@ -16,4 +16,12 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback main
+        run: |
+          # Add the Hugging Face remote
+          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback
+          
+          # Pull the latest changes from the hub using a rebase strategy
+          git pull hub main --rebase
+          
+          # Push the merged changes back to the hub
+          git push hub main
