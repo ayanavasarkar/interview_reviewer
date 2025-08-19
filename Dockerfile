@@ -9,6 +9,9 @@ ENV TORCH_HOME=/app/.cache/torch
 ENV HF_HOME=/app/.cache/huggingface
 ENV XDG_CACHE_HOME=/app/.cache
 
+# Install ffmpeg, a system-level dependency for Whisper
+RUN apt-get update && apt-get install -y ffmpeg
+
 # Install dependencies
 COPY ./backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
