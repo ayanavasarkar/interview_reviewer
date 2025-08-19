@@ -4,9 +4,11 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# --- NEW LINE ---
-# Set a writable cache directory to avoid permission errors
-ENV HF_HOME=/app/.cache
+# --- NEW LINES ---
+# Set environment variables for all common cache locations to a writable path
+ENV PIP_CACHE_DIR=/app/.cache/pip
+ENV TORCH_HOME=/app/.cache/torch
+ENV HF_HOME=/app/.cache/huggingface
 
 # --- Backend Setup ---
 # Copy the requirements file from the backend folder
