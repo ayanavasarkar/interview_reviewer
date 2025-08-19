@@ -18,7 +18,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           # Add the Hugging Face remote
-          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback
+          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewAssistant
           
           # Pull the latest changes from the hub using a rebase strategy
           git pull hub main --rebase
