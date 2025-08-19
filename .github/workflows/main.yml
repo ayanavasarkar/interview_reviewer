@@ -24,7 +24,7 @@ jobs:
           git config --global user.name "ayaisthebest"
           
           # Add the Hugging Face remote
-          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback
+          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewAssistant
           
           # Pull the latest changes from the hub using a rebase strategy
           git pull hub main --rebase
