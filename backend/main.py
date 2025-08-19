@@ -10,6 +10,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+
+import os
+
+# Force Whisper and Torch to use /app/.cache
+os.environ["XDG_CACHE_HOME"] = "/app/.cache"
+os.environ["TORCH_HOME"] = "/app/.cache/torch"
+os.environ["TRANSFORMERS_CACHE"] = "/app/.cache/huggingface"
+
 # --------------------------
 # Initialize FastAPI
 # --------------------------
