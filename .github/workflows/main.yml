@@ -18,4 +18,4 @@ jobs:
       - name: Pull from hub, merge, and push
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback main
+        run: git push --force https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewAssistant main
