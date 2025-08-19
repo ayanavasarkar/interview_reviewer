@@ -2,7 +2,8 @@ name: Sync to Hugging Face hub
 on:
   push:
     branches: [main]
-  # to run this workflow manually from the Actions tab
+
+  # To run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -13,12 +14,17 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to hub
+
+      - name: Pull from hub, merge, and push
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Configure Git with a user name and email
+          git config --global user.email "ayanavasarka@gmail.com"
+          git config --global user.name "ayaisthebest"
+          
           # Add the Hugging Face remote
-          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewAssistant
+          git remote add hub https://ayaisthebest:$HF_TOKEN@huggingface.co/spaces/ayaisthebest/InterviewFeedback
           
           # Pull the latest changes from the hub using a rebase strategy
           git pull hub main --rebase
