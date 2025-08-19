@@ -91,6 +91,7 @@ def analyze_with_groq(transcript: str) -> dict:
         )
 
         analysis_json = chat_completion.choices[0].message.content
+        print("Analysis with Groq successfull")
         return json.loads(analysis_json)
 
     except Exception as e:
