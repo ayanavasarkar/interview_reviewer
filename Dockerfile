@@ -4,6 +4,10 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# --- NEW LINE ---
+# Set a writable cache directory to avoid permission errors
+ENV HF_HOME=/app/.cache
+
 # --- Backend Setup ---
 # Copy the requirements file from the backend folder
 COPY ./backend/requirements.txt /app/requirements.txt
