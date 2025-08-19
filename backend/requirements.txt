@@ -6,3 +6,4 @@ openai-whisper
 ffmpeg-python
 python-multipart
 python-multipart
+tempfile

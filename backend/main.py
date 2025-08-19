@@ -1,6 +1,7 @@
 import os
 import whisper
 import json
+import tempfile
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
@@ -9,9 +10,6 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv()
-
-
-import os
 
 # Force Whisper and Torch to use /app/.cache
 os.environ["XDG_CACHE_HOME"] = "/app/.cache"
@@ -71,7 +69,6 @@ def list_to_str(lst):
     """Ensure all items in a list are strings and join with newlines."""
     return "\n".join([str(item) for item in lst])
 
-
 def analyze_with_groq(transcript: str) -> dict:
     """
     Sends the transcript to Groq LLaMA model and returns analysis JSON.
@@ -107,11 +104,11 @@ async def analyze_interview(file: UploadFile = File(...)):
     if not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload audio.")
 
-    temp_file = f"temp_{file.filename}"
     try:
-        # Save uploaded file
-        with open(temp_file, "wb") as f:
-            f.write(await file.read())
+        # Create a temporary file in a safe directory
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            temp_file = tmp.name
+            tmp.write(await file.read())
 
         # Transcribe audio
         result = model.transcribe(temp_file)
@@ -121,10 +118,10 @@ async def analyze_interview(file: UploadFile = File(...)):
         analysis_data = analyze_with_groq(transcript)
 
         # Convert lists to strings for frontend display
-        # We get dict from groq, so we need to convert to string
         strengths = list_to_str(analysis_data.get("strengths", []))
         weaknesses = list_to_str(analysis_data.get("weaknesses", []))
         recommendations = list_to_str(analysis_data.get("recommendations", []))
+
         print("Processing complete")
         return {
             "transcript": transcript,
@@ -137,5 +134,5 @@ async def analyze_interview(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
     finally:
-        if os.path.exists(temp_file):
+        if 'temp_file' in locals() and os.path.exists(temp_file):
             os.remove(temp_file)
