@@ -18,8 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     let isRecording = false;
     // const API_ENDPOINT = "http://127.0.0.1:8000/analyze-interview/";
-    const API_ENDPOINT = "/analyze";
-    // const API_ENDPOINT = window.location.origin + "/analyze";
+    const API_ENDPOINT = "http://0.0.0.0:7860/analyze-interview/";
+    // const API_ENDPOINT = "/analyze";
+    // const API_ENDPOINT = window.location.origin + "/analyze-interview/";
 
 
     // --- Media Recorder Functions ---
