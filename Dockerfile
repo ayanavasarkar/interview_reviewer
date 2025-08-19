@@ -13,6 +13,7 @@ ENV XDG_CACHE_HOME=/app/.cache
 COPY ./backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
+
 # Copy backend and frontend
 COPY ./backend /app/backend
 COPY ./index.html /app/

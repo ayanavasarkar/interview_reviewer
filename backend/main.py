@@ -125,7 +125,7 @@ async def analyze_interview(file: UploadFile = File(...)):
         strengths = list_to_str(analysis_data.get("strengths", []))
         weaknesses = list_to_str(analysis_data.get("weaknesses", []))
         recommendations = list_to_str(analysis_data.get("recommendations", []))
-        
+        print("Processing complete")
         return {
             "transcript": transcript,
             "strengths": strengths,
