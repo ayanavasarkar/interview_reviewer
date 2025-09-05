@@ -1,30 +1,24 @@
 import os
-import whisper
-import json
+import io
 import tempfile
-import PyPDF2
-import docx
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+import whisper
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
-from groq import Groq
 from dotenv import load_dotenv
 from typing import Optional
 
+# Import the refactored helper functions
+from utils import analyze_with_groq, read_pdf, read_docx, list_to_str
+
 # Load environment variables from .env
 load_dotenv()
-
-# Force Whisper and Torch to use /app/.cache
-# os.environ["XDG_CACHE_HOME"] = "/app/.cache"
-# os.environ["TORCH_HOME"] = "/app/.cache/torch"
-# os.environ["TRANSFORMERS_CACHE"] = "/app/.cache/huggingface"
 
 # --------------------------
 # Initialize FastAPI
 # --------------------------
 app = FastAPI()
 
-# Allow CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,19 +30,10 @@ app.add_middleware(
 # --------------------------
 # Load Whisper Model
 # --------------------------
-model = whisper.load_model("base")  # choose "small", "medium", etc. for speed vs accuracy
+model = whisper.load_model("base")
 
 # --------------------------
-# Initialize Groq Client
-# --------------------------
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY not found in environment variables")
-
-groq_client = Groq(api_key=GROQ_API_KEY)
-
-# --------------------------
-# Frontend file paths
+# Serve Frontend
 # --------------------------
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -65,90 +50,59 @@ async def script():
     return FileResponse(os.path.join(PROJECT_ROOT, "script.js"))
 
 # --------------------------
-# Helper: Analyze transcript with Groq + LLaMA
-# --------------------------
-
-def list_to_str(lst):
-    """Ensure all items in a list are strings and join with newlines."""
-    return "\n".join([str(item) for item in lst])
-
-def analyze_with_groq(transcript: str) -> dict:
-    """
-    Sends the transcript to Groq LLaMA model and returns analysis JSON.
-    """
-    system_prompt = (
-        """
-            You are an expert interview coach. Analyze the following interview transcript.
-            Identify the candidate's strengths, weaknesses, and provide actionable recommendations.
-            Format your response as a single JSON object with three keys: 'strengths', 'weaknesses', 'recommendations'.
-
-            Example response:
-            {
-                "strengths": ["Strong communication skills", "Relevant experience"],
-                "weaknesses": ["Lack of experience in the industry", "Needs to improve on technical questions"],
-                "recommendations": ["Practice common interview questions", "Consider a mock interview session"]
-            }
-
-            The response should be in JSON format.
-        """
-        
-    )
-
-    try:
-        chat_completion = groq_client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": transcript},
-            ],
-            model="llama3-8b-8192",
-            temperature=0.7,
-            response_format={"type": "json_object"},
-        )
-
-        analysis_json = chat_completion.choices[0].message.content
-        print("Analysis with Groq successfull")
-        return json.loads(analysis_json)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Groq analysis failed: {str(e)}")
-
-# --------------------------
-# Analyze Interview Endpoint
+# API Endpoint
 # --------------------------
 @app.post("/analyze-interview/")
-async def analyze_interview(file: UploadFile = File(...)):
-    if not file.content_type.startswith("audio/"):
+async def analyze_interview(
+    file: UploadFile = File(...), 
+    resume_file: Optional[UploadFile] = File(None)
+):
+    if not file.content_type or not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload audio.")
 
+    temp_audio_file = None
+    resume_text = None
+    
     try:
-        # Create a temporary file in a safe directory
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            temp_file = tmp.name
-            tmp.write(await file.read())
+        # --- 1. Process Resume File (using utils) ---
+        if resume_file:
+            resume_content = await resume_file.read()
+            file_stream = io.BytesIO(resume_content)
+            if resume_file.content_type == "application/pdf":
+                resume_text = read_pdf(file_stream)
+            elif resume_file.content_type in ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword"]:
+                resume_text = read_docx(file_stream)
+            else:
+                raise HTTPException(status_code=400, detail="Unsupported resume file type. Please upload a PDF or DOCX file.")
 
-        # Transcribe audio
-        result = model.transcribe(temp_file)
+        # --- 2. Process Audio File ---
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            temp_audio_file = tmp.name
+            audio_content = await file.read()
+            tmp.write(audio_content)
+
+        result = model.transcribe(temp_audio_file)
         transcript = result["text"]
 
-        # Analyze transcript
-        analysis_data = analyze_with_groq(transcript)
+        if not transcript.strip():
+             raise HTTPException(status_code=400, detail="Could not transcribe audio. The file may be empty or silent.")
 
-        # Convert lists to strings for frontend display
-        strengths = list_to_str(analysis_data.get("strengths", []))
-        weaknesses = list_to_str(analysis_data.get("weaknesses", []))
-        recommendations = list_to_str(analysis_data.get("recommendations", []))
+        # --- 3. Get AI Analysis (using utils) ---
+        analysis_data = analyze_with_groq(transcript, resume_text)
 
-        print("Processing complete")
+        # --- 4. Format and Return Response (using utils) ---
         return {
             "transcript": transcript,
-            "strengths": strengths,
-            "weaknesses": weaknesses,
-            "recommendations": recommendations,
+            "strengths": list_to_str(analysis_data.get("strengths", [])),
+            "weaknesses": list_to_str(analysis_data.get("weaknesses", [])),
+            "recommendations": list_to_str(analysis_data.get("recommendations", [])),
         }
 
     except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
     finally:
-        if 'temp_file' in locals() and os.path.exists(temp_file):
-            os.remove(temp_file)
+        if temp_audio_file and os.path.exists(temp_audio_file):
+            os.remove(temp_audio_file)
