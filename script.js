@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetBtn');
     const controlsDiv = document.querySelector('.controls');
 
+    // Add these new DOM element selectors at the top
+    const resumeFileInput = document.getElementById('resumeFile');
+    const resumeFileNameDisplay = document.getElementById('resumeFileName');
+
     // --- State Variables ---
     let mediaRecorder;
     let audioChunks = [];
@@ -20,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // const API_ENDPOINT = "http://127.0.0.1:8000/analyze-interview/";
     // const API_ENDPOINT = "http://0.0.0.0:7860/analyze-interview/"; // for HF; this is the port for the HF server
     const API_ENDPOINT = window.location.origin + "/analyze-interview/";
-    // Locally → becomes http://127.0.0.1:7860/analyze-interview/
     // On Hugging Face → becomes https://<your-space>.hf.space/analyze-interview/
 
     // --- Media Recorder Functions ---
@@ -65,10 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- API Communication ---
-    const sendAudioToServer = async (file) => {
+    // --- API Communication (Update this function) ---
+    const sendAudioToServer = async (audioFile) => {
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", audioFile);
+        // formData.append("audio_file", audioFile); // Use a specific key for the audio file
+
+        // Check if a resume file is selected and append it
+        const resumeFile = resumeFileInput.files[0];
+        if (resumeFile) {
+            formData.append("resume_file", resumeFile); // Use a specific key for the resume
+        }
 
         showStatus("Uploading and analyzing... This may take a moment.");
 
@@ -87,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayFeedback(result);
 
         } catch (error) {
-            console.error("Error sending audio to server:", error);
+            console.error("Error sending data to server:", error);
             showError(`Analysis failed: ${error.message}`);
         }
     };
@@ -135,6 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Event Listeners ---
+    resumeFileInput.addEventListener('change', () => {
+        const file = resumeFileInput.files[0];
+        if (file) {
+            resumeFileNameDisplay.textContent = file.name;
+        }
+    });
     recordBtn.addEventListener('click', () => {
         if (isRecording) stopRecording();
         else startRecording();

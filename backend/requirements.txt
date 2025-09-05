@@ -6,3 +6,5 @@ openai-whisper
 ffmpeg-python
 python-multipart
 python-multipart
+PyPDF2
+python-docx

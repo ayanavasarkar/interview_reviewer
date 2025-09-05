@@ -2,19 +2,22 @@ import os
 import whisper
 import json
 import tempfile
-from fastapi import FastAPI, File, UploadFile, HTTPException
+import PyPDF2
+import docx
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from groq import Groq
 from dotenv import load_dotenv
+from typing import Optional
 
 # Load environment variables from .env
 load_dotenv()
 
 # Force Whisper and Torch to use /app/.cache
-os.environ["XDG_CACHE_HOME"] = "/app/.cache"
-os.environ["TORCH_HOME"] = "/app/.cache/torch"
-os.environ["TRANSFORMERS_CACHE"] = "/app/.cache/huggingface"
+# os.environ["XDG_CACHE_HOME"] = "/app/.cache"
+# os.environ["TORCH_HOME"] = "/app/.cache/torch"
+# os.environ["TRANSFORMERS_CACHE"] = "/app/.cache/huggingface"
 
 # --------------------------
 # Initialize FastAPI
@@ -74,9 +77,21 @@ def analyze_with_groq(transcript: str) -> dict:
     Sends the transcript to Groq LLaMA model and returns analysis JSON.
     """
     system_prompt = (
-        "You are an expert interview coach. Analyze the following interview transcript. "
-        "Identify the candidate's strengths, weaknesses, and provide actionable recommendations. "
-        "Format your response as a JSON object with three keys: 'strengths', 'weaknesses', 'recommendations'."
+        """
+            You are an expert interview coach. Analyze the following interview transcript.
+            Identify the candidate's strengths, weaknesses, and provide actionable recommendations.
+            Format your response as a single JSON object with three keys: 'strengths', 'weaknesses', 'recommendations'.
+
+            Example response:
+            {
+                "strengths": ["Strong communication skills", "Relevant experience"],
+                "weaknesses": ["Lack of experience in the industry", "Needs to improve on technical questions"],
+                "recommendations": ["Practice common interview questions", "Consider a mock interview session"]
+            }
+
+            The response should be in JSON format.
+        """
+        
     )
 
     try:
