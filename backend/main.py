@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from typing import Optional
 
 # Import the refactored helper functions
-from utils import analyze_with_groq, read_pdf, read_docx, list_to_str
+from backend.utils import analyze_with_groq, read_pdf, read_docx, list_to_str
 
 # Load environment variables from .env
 load_dotenv()
